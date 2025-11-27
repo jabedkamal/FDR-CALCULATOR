@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FDR মুনাফা ক্যালকুলেটর</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Hind Siliguri', sans-serif;
+            background-color: #f0f9ff;
+        }
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <div class="w-full max-w-lg bg-white rounded-2xl shadow-xl overflow-hidden border border-blue-100">
+        <!-- Header -->
+        <div class="bg-blue-600 p-6 text-center">
+            <h1 class="text-2xl font-bold text-white">FDR মুনাফা ক্যালকুলেটর</h1>
+            <p class="text-blue-100 text-sm mt-1">সঠিক এবং দ্রুত হিসাবের জন্য</p>
+        </div>
+
+        <div class="p-6 space-y-5">
+            
+            <!-- Input: Principal -->
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">বিনিয়োগের পরিমাণ (টাকা)</label>
+                <div class="relative">
+                    <input type="number" id="principal" class="w-full p-3 pl-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition" placeholder="১,০০,০০০">
+                    <span class="absolute right-4 top-3 text-gray-400">৳</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <!-- Input: Rate -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">সুদের হার (%)</label>
+                    <input type="number" id="rate" step="0.01" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition" placeholder="৯.০০">
+                </div>
+
+                <!-- Input: Time -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">সময় (বছর)</label>
+                    <input type="number" id="time" step="0.1" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition" placeholder="১">
+                </div>
+            </div>
+
+            <!-- Input: Tax -->
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">ট্যাক্স / উৎস কর</label>
+                <select id="tax" class="w-full p-3 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 outline-none transition">
+                    <option value="15">১৫% (TIN নেই)</option>
+                    <option value="10">১০% (TIN আছে)</option>
+                    <option value="0">০% (ট্যাক্স মুক্ত)</option>
+                </select>
+            </div>
+
+            <!-- Extra: Excise Duty Toggle -->
+            <div class="flex items-center space-x-2 bg-gray-50 p-3 rounded-lg border border-gray-200">
+                <input type="checkbox" id="exciseDuty" class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
+                <label for="exciseDuty" class="text-sm text-gray-700 cursor-pointer select-none">
+                    সরকারি আবগারি শুল্ক (Excise Duty) বাদ দিন?
+                </label>
+            </div>
+
+            <!-- Calculate Button -->
+            <button onclick="calculate()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg shadow-lg transform active:scale-95 transition duration-200">
+                হিসাব দেখুন
+            </button>
+
+            <!-- Result Section -->
+            <div id="result-section" class="hidden mt-6 bg-blue-50 rounded-xl p-5 border border-blue-100">
+                <h3 class="text-center font-bold text-blue-800 mb-4 border-b border-blue-200 pb-2">ফলাফল</h3>
+                
+                <div class="space-y-3 text-sm">
+                    <div class="flex justify-between text-gray-600">
+                        <span>মোট সুদ (Gross Interest):</span>
+                        <span class="font-semibold text-gray-800" id="gross-interest">0 ৳</span>
+                    </div>
+                    <div class="flex justify-between text-red-500">
+                        <span>ট্যাক্স কর্তন (-):</span>
+                        <span class="font-semibold" id="tax-amount">0 ৳</span>
+                    </div>
+                    <div class="flex justify-between text-orange-600 hidden" id="excise-row">
+                        <span>আবগারি শুল্ক (-):</span>
+                        <span class="font-semibold" id="excise-amount">0 ৳</span>
+                    </div>
+                    <div class="flex justify-between text-green-700 font-bold pt-2 border-t border-blue-200 text-base">
+                        <span>নিট মুনাফা (Net Profit):</span>
+                        <span id="net-profit">0 ৳</span>
+                    </div>
+                    
+                    <div class="mt-4 bg-white p-3 rounded-lg border border-blue-100 shadow-sm text-center">
+                        <span class="block text-xs text-gray-500 mb-1">মেয়াদ শেষে মোট প্রাপ্য (আসল + মুনাফা)</span>
+                        <span class="text-xl font-bold text-blue-700" id="total-amount">0 ৳</span>
+                    </div>
+
+                    <div class="text-center text-xs text-gray-500 mt-2">
+                        মাসিক গড় আয়: <span id="monthly-income" class="font-medium text-gray-700">0</span> ৳
+                    </div>
+                </div>
+            </div>
+
+            <!-- Note -->
+            <p class="text-xs text-center text-gray-400 mt-4">
+                বি:দ্র: ব্যাংক ভেদে চার্জ সামান্য ভিন্ন হতে পারে। আবগারি শুল্ক বর্তমান সরকারি স্ল্যাব অনুযায়ী ধরা হয়েছে।
+            </p>
+        </div>
+    </div>
+
+    <script>
+        function calculate() {
+            // Get inputs
+            const P = parseFloat(document.getElementById('principal').value);
+            const R = parseFloat(document.getElementById('rate').value);
+            const T = parseFloat(document.getElementById('time').value);
+            const taxRate = parseFloat(document.getElementById('tax').value);
+            const deductExcise = document.getElementById('exciseDuty').checked;
+
+            if (!P || !R || !T) {
+                alert("দয়া করে টাকার পরিমাণ, সুদের হার এবং সময় সঠিকভাবে পূরণ করুন।");
+                return;
+            }
+
+            // Calculations
+            // Gross Interest = Principal * Rate * Time / 100
+            const grossInterest = (P * R * T) / 100;
+
+            // Tax Deduction
+            const taxAmount = (grossInterest * taxRate) / 100;
+
+            // Excise Duty Calculation (Bangladesh Standard Slabs - Yearly basis)
+            // Note: Excise duty is deducted annually on the balance. Here we approximate for the term.
+            // Slabs (Approx):
+            // Up to 1 Lakh: 0
+            // 1L - 5L: 150
+            // 5L - 10L: 500
+            // 10L - 1Cr: 3000
+            // 1Cr - 5Cr: 15000
+            // Above 5Cr: 40000+
+            
+            let yearlyExcise = 0;
+            // Balance check is usually on Principal + Interest at year end, but typically banks deduct based on the highest balance. 
+            // We will use Principal for slab determination to keep it simple and standard.
+            
+            if (P <= 100000) yearlyExcise = 0;
+            else if (P <= 500000) yearlyExcise = 150;
+            else if (P <= 1000000) yearlyExcise = 500;
+            else if (P <= 10000000) yearlyExcise = 3000;
+            else if (P <= 50000000) yearlyExcise = 15000;
+            else yearlyExcise = 50000;
+
+            // Total excise over the time period
+            // If T is less than 1 year, usually duty is still cut once if it crosses a calendar year, 
+            // but for simple calculation we will multiply by T if T >= 1, or take 1 year charge if T < 1.
+            // However, most simple calculators just deduct per year. Let's strictly follow "deduct if checked".
+            
+            let totalExcise = 0;
+            if (deductExcise) {
+                const years = Math.ceil(T); // Duty applies per year or part thereof
+                totalExcise = yearlyExcise * years;
+            }
+
+            // Net Profit
+            const netProfit = grossInterest - taxAmount - totalExcise;
+            const totalAmount = P + netProfit;
+            const monthlyIncome = netProfit / (T * 12);
+
+            // Display Results
+            document.getElementById('result-section').classList.remove('hidden');
+            
+            document.getElementById('gross-interest').innerText = formatCurrency(grossInterest);
+            document.getElementById('tax-amount').innerText = formatCurrency(taxAmount);
+            
+            const exciseRow = document.getElementById('excise-row');
+            if (deductExcise && totalExcise > 0) {
+                exciseRow.classList.remove('hidden');
+                document.getElementById('excise-amount').innerText = formatCurrency(totalExcise);
+            } else {
+                exciseRow.classList.add('hidden');
+            }
+
+            document.getElementById('net-profit').innerText = formatCurrency(netProfit);
+            document.getElementById('total-amount').innerText = formatCurrency(totalAmount);
+            document.getElementById('monthly-income').innerText = formatCurrency(monthlyIncome > 0 ? monthlyIncome : 0);
+        }
+
+        function formatCurrency(num) {
+            return num.toLocaleString('en-BD', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }) + ' ৳';
+        }
+    </script>
+</body>
+</html>
+
